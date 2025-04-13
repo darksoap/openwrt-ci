@@ -2,8 +2,10 @@ name: IPQ60XX-6.12-WIFI
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [repository_updated]
   schedule:
-    - cron: 0 19 * * *
+    - cron: '0 19 * * *'
 
 env:
   REPO_URL: https://github.com/LiBwrt/openwrt-6.x.git
@@ -18,7 +20,30 @@ env:
   TZ: Asia/Shanghai
 
 jobs:
+  Check_Last_Update:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check_time.outputs.should_run }}
+    steps:
+      - name: Check last update time
+        id: check_time
+        run: |
+          # 获取远程仓库的最后一次提交时间
+          last_commit_date=$(curl -s "https://api.github.com/repos/LiBwrt/openwrt-6.x/commits/kernel-6.12" | jq -r '.commit.author.date')
+          last_commit_timestamp=$(date -d "$last_commit_date" +%s)
+          current_timestamp=$(date +%s)
+          time_diff=$((current_timestamp - last_commit_timestamp))
+          
+          # 检查是否已经过了24小时
+          if [ $time_diff -gt 86400 ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
   Build:
+    needs: Check_Last_Update
+    if: needs.Check_Last_Update.outputs.should_run == 'true'
     runs-on: ubuntu-22.04
 
     steps:
