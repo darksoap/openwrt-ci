@@ -35,11 +35,11 @@ jobs:
           time_diff=$((current_timestamp - last_commit_timestamp))
           
           # 检查是否已经过了24小时
-          if [ $time_diff -gt 86400 ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
+          # if [ $time_diff -gt 86400 ]; then
+          echo "should_run=true" >> $GITHUB_OUTPUT
+          # else
+          #   echo "should_run=false" >> $GITHUB_OUTPUT
+          # fi
 
   Build:
     needs: Check_Last_Update
